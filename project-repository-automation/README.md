@@ -1,0 +1,1 @@
+<p>PnP Powershell script to automate creation of project repository and assigning of relevant permissions on SharePoint.</p>
