@@ -9,8 +9,17 @@ $Name = Read-Host "Please enter the name of the project"
 $ChargeCode = Read-Host "Please enter the charge code of the project"
 $Portfolio = Read-Host "Please specify the portfolio this project is under (CS&D or HC&J)"
 $Title = $Name+" ("+$ChargeCode+")"
-Write-Host "Creating the $($Title) document library"
-New-PnPList -Title $Title -Template DocumentLibrary
+#Duplicate check based on charge code
+$SearchResults = Submit-PnPSearchQuery -Query "($($ChargeCode))"
+Write-Host $SearchResults.ResultRows[0]
+if ($SearchResults.ResultRows[0]) {
+    Write-Host -ForegroundColor RED "A project with duplicate charge code exists! Please verify that the repository for the project you are trying to create does not already exist. For any questions, please contact the SharePoint site administrator."
+    Write-Host -ForegroundColor RED "Exiting the script."
+    Exit
+} else {
+    Write-Host "Creating the $($Title) document library"
+    New-PnPList -Title $Title -Template DocumentLibrary
+}
 
 #Copy the folder structure to the new document library
 $Items = Get-PnPListItem -List "Shared Documents"
@@ -29,4 +38,4 @@ Add-PnPListItem -List "Projects" -Values @{
     "Charge_x0020_Number" = $ChargeCode;
     "Repository_x0020_Location" = $TargetUrl+"/Forms/AllItems.aspx, "+$Title;
     "Sector" = $Portfolio
-    }
+}
