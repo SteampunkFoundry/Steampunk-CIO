@@ -1,3 +1,25 @@
+param
+(
+    [Parameter(Mandatory=$false)]
+    [object] $WebhookData
+)
+
+write-output "start"
+write-output ("object type: {0}" -f $WebhookData.gettype())
+write-output $WebhookData
+
+#Manual string parsing, because powershell 7.1 brings invalid JSON from a webhook 
+#See https://docs.microsoft.com/en-us/azure/automation/automation-runbook-types#known-issues---71-preview
+$SplitData = $WebhookData.Split(" ")
+write-output $SplitData
+for ( $i = 0; $i -lt $SplitData.count; $i++ )
+{
+	if ($SplitData[$i] -eq '"Name":') {
+		$Name = $SplitData[$i + 1]
+	}
+}
+write-output $Name
+
 #Parameters
 $SourceSiteURL = "https://sesolutionsinc.sharepoint.com/sites/Michael-Kim-Test-Site"
 
@@ -11,7 +33,6 @@ $Portfolio = Read-Host "Please specify the portfolio this project is under (CS&D
 $Title = $Name+" ("+$ChargeCode+")"
 #Duplicate check based on charge code
 $SearchResults = Submit-PnPSearchQuery -Query "($($ChargeCode))"
-Write-Host $SearchResults.ResultRows[0]
 if ($SearchResults.ResultRows[0]) {
     Write-Host -ForegroundColor RED "A project with duplicate charge code exists! Please verify that the repository for the project you are trying to create does not already exist. For any questions, please contact the SharePoint site administrator."
     Write-Host -ForegroundColor RED "Exiting the script."
