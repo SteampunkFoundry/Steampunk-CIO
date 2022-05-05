@@ -8,6 +8,8 @@ write-output "start"
 write-output ("object type: {0}" -f $WebhookData.gettype())
 write-output $WebhookData
 
+#Manual string parsing, because powershell 7.1 brings invalid JSON from a webhook 
+#See https://docs.microsoft.com/en-us/azure/automation/automation-runbook-types#known-issues---71-preview
 $SplitData = $WebhookData.Split(" ")
 write-output $SplitData
 for ( $i = 0; $i -lt $SplitData.count; $i++ )
@@ -28,7 +30,6 @@ for ( $i = 0; $i -lt $SplitData.count; $i++ )
 		write-output $Portfolio
 	}
 }
-
 
 #Parameters
 $SourceSiteURL = "https://sesolutionsinc.sharepoint.com/sites/Michael-Kim-Test-Site"
