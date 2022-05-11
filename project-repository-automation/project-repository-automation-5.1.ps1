@@ -57,8 +57,13 @@ $GroupName = $Title+' - Owners'
 write-output "Creating owners group..."
 $CreateGroup = New-PnPGroup -Title $GroupName
 write-output "Adding owner(s) to the group..."
-$AddMember = Add-PnPGroupMember -LoginName $RequestBody.Owners -Group $GroupName
+$SplitOwners = $RequestBody.Owners.Split(", ")| where {$_}
+foreach($Owner in $SplitOwners){
+	$AddMember = Add-PnPGroupMember -LoginName $Owner -Group $GroupName
+}
 #Break Permission Inheritance of the List
 $BreakInheritance = Set-PnPList -Identity $Title -BreakRoleInheritance -CopyRoleAssignments
 #Grant permission on list to Group
 $SetPermission = Set-PnPListPermission -Identity $Title -AddRole "Full Control" -Group $GroupName
+
+write-output "Done."
