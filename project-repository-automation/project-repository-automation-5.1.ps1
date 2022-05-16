@@ -4,6 +4,8 @@ param
     [object] $WebhookData
 )
 
+$VerbosePreference = "Continue"
+
 $JsonRequestBody = $WebhookData.RequestBody
 $RequestBody = ConvertFrom-Json -InputObject $JsonRequestBody
 write-output $RequestBody.Name
