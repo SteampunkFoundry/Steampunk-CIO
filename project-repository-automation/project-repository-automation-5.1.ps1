@@ -15,7 +15,7 @@ Write-Verbose -Message $RequestBody.Owners
 $SourceSiteURL = "https://sesolutionsinc.sharepoint.com/sites/Michael-Kim-Test-Site"
 
 # Login
-Connect-PnPOnline -ClientId 2b3063f1-bfaa-4198-8cbd-815e4db7e8fb -Url $SourceSiteURL -Tenant "sesolutionsinc.onmicrosoft.com" -Thumbprint 4C3BB513DD1E75198C8127EC80024C0A463D2250
+Connect-PnPOnline -ClientId <ClientID> -Url $SourceSiteURL -Tenant "sesolutionsinc.onmicrosoft.com" -Thumbprint <Thumbprint>
 
 #Create the document library
 $Name = $RequestBody.Name
@@ -23,8 +23,8 @@ $ChargeCode = $RequestBody.ChargeCode
 $Portfolio = $RequestBody.Portfolio
 $Title = $Name+" ("+$ChargeCode+")"
 #Duplicate check based on charge code
-$SearchResults = Submit-PnPSearchQuery -Query "Title:($($ChargeCode))" -MaxResults 1
-if ($SearchResults.ResultRows[0]) {
+$SearchResult = Get-PnPListItem -List "Projects" -Query "<View><Query><Where><Eq><FieldRef Name='Charge_x0020_Number'/><Value Type='Text'>$ChargeCode</Value></Eq></Where></Query></View>"
+if ($SearchResult) {
     Write-Verbose -Message "A project with duplicate charge code exists! Please verify that the repository for the project you are trying to create does not already exist. For any questions, please contact the SharePoint site administrator."
     Write-Verbose -Message "Exiting the script." 
     Exit
@@ -32,6 +32,7 @@ if ($SearchResults.ResultRows[0]) {
     Write-Verbose -Message "Creating the $($Title) document library"
     $CreateNewLibrary = New-PnPList -Title $Title -Template DocumentLibrary
 }
+
 
 #Copy the folder structure to the new document library
 $Items = Get-PnPListItem -List "Shared Documents"
