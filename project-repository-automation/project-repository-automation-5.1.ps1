@@ -4,14 +4,12 @@ param
     [object] $WebhookData
 )
 
-$VerbosePreference = "Continue"
-
 $JsonRequestBody = $WebhookData.RequestBody
 $RequestBody = ConvertFrom-Json -InputObject $JsonRequestBody
-write-output $RequestBody.Name
-write-output $RequestBody.ChargeCode
-write-output $RequestBody.Portfolio
-write-output $RequestBody.Owners
+Write-Verbose -Message $RequestBody.Name
+Write-Verbose -Message $RequestBody.ChargeCode
+Write-Verbose -Message $RequestBody.Portfolio
+Write-Verbose -Message $RequestBody.Owners
 
 # Parameters
 $SourceSiteURL = "https://sesolutionsinc.sharepoint.com/sites/Michael-Kim-Test-Site"
@@ -27,11 +25,11 @@ $Title = $Name+" ("+$ChargeCode+")"
 #Duplicate check based on charge code
 $SearchResults = Submit-PnPSearchQuery -Query "Title:($($ChargeCode))" -MaxResults 1
 if ($SearchResults.ResultRows[0]) {
-    write-output "A project with duplicate charge code exists! Please verify that the repository for the project you are trying to create does not already exist. For any questions, please contact the SharePoint site administrator."
-    write-output "Exiting the script."
+    Write-Verbose -Message "A project with duplicate charge code exists! Please verify that the repository for the project you are trying to create does not already exist. For any questions, please contact the SharePoint site administrator."
+    Write-Verbose -Message "Exiting the script." 
     Exit
 } else {
-    write-output "Creating the $($Title) document library"
+    Write-Verbose -Message "Creating the $($Title) document library"
     $CreateNewLibrary = New-PnPList -Title $Title -Template DocumentLibrary
 }
 
@@ -40,13 +38,13 @@ $Items = Get-PnPListItem -List "Shared Documents"
 $TargetUrl = "/sites/Michael-Kim-Test-Site/$($Name) $($ChargeCode)"
 foreach($Item in $Items){
     if (($Item.fieldValues.FileRef -match '/sites/Michael-Kim-Test-Site/Shared Documents/testProject/') -and ($Item.fieldValues.FileRef -notmatch '/sites/Michael-Kim-Test-Site/Shared Documents/testProject/.*/')){
-    write-output "Copying folder: $($Item.FieldValues.FileLeafRef)"
+    Write-Verbose -Message "Copying folder: $($Item.FieldValues.FileLeafRef)"
     $CopyTemplate = Copy-PnPFile -SourceUrl "$($Item.FieldValues.FileRef)" -TargetUrl $TargetUrl -Force
     }
 }
 
 #Add List
-write-output "Creating List..."
+Write-Verbose -Message "Creating List..."
 $AddProjectList = Add-PnPListItem -List "Projects" -Values @{
     "Title" = $Title;
     "Charge_x0020_Number" = $ChargeCode;
@@ -56,9 +54,9 @@ $AddProjectList = Add-PnPListItem -List "Projects" -Values @{
 
 # Permission groups
 $GroupName = $Title+' - Owners'
-write-output "Creating owners group..."
+Write-Verbose -Message "Creating owners group..."
 $CreateGroup = New-PnPGroup -Title $GroupName
-write-output "Adding owner(s) to the group..."
+Write-Verbose -Message "Adding owner(s) to the group..."
 $SplitOwners = $RequestBody.Owners.Split(", ")| where {$_}
 foreach($Owner in $SplitOwners){
 	$AddMember = Add-PnPGroupMember -LoginName $Owner -Group $GroupName
@@ -68,4 +66,4 @@ $BreakInheritance = Set-PnPList -Identity $Title -BreakRoleInheritance -CopyRole
 #Grant permission on list to Group
 $SetPermission = Set-PnPListPermission -Identity $Title -AddRole "Full Control" -Group $GroupName
 
-write-output "Done."
+Write-Verbose -Message "Done."
