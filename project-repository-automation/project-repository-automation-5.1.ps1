@@ -30,13 +30,13 @@ if ($SearchResult) {
     Exit
 } else {
     Write-Verbose -Message "Creating the $($Title) document library"
-    $CreateNewLibrary = New-PnPList -Title $Title -Template DocumentLibrary
+    $CreateNewLibrary = New-PnPList -Title $Title -Url "$ChargeCode" -Template DocumentLibrary 
 }
 
 
 #Copy the folder structure to the new document library
 $Items = Get-PnPListItem -List "Shared Documents"
-$TargetUrl = "/sites/Michael-Kim-Test-Site/$($Name) $($ChargeCode)"
+$TargetUrl = "/sites/Michael-Kim-Test-Site/$ChargeCode"
 foreach($Item in $Items){
     if (($Item.fieldValues.FileRef -match '/sites/Michael-Kim-Test-Site/Shared Documents/testProject/') -and ($Item.fieldValues.FileRef -notmatch '/sites/Michael-Kim-Test-Site/Shared Documents/testProject/.*/')){
     Write-Verbose -Message "Copying folder: $($Item.FieldValues.FileLeafRef)"
