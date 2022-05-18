@@ -11,8 +11,18 @@ Write-Verbose -Message $RequestBody.ChargeCode
 Write-Verbose -Message $RequestBody.Portfolio
 Write-Verbose -Message $RequestBody.Owners
 
-# Parameters
-$SourceSiteURL = "https://sesolutionsinc.sharepoint.com/sites/Michael-Kim-Test-Site"
+# Parameters for targeting the Projects site
+$SourceSiteURL = "https://sesolutionsinc.sharepoint.com/sites/Projects"
+$SourceSiteName = "Projects"
+$ListURL = "Lists/Projects"
+$TemplateListName = "Template"
+
+# Parameters for targeting the mike-test-site
+# $SourceSiteURL = "https://sesolutionsinc.sharepoint.com/sites/Michael-Kim-Test-Site"
+# $SourceSiteName = "Michael-Kim-Test-Site"
+# $ListURL = "Projects"
+# $TemplateListName = "Shared Documents"
+
 
 # Login
 Connect-PnPOnline -ClientId <ClientID> -Url $SourceSiteURL -Tenant "sesolutionsinc.onmicrosoft.com" -Thumbprint <Thumbprint>
@@ -23,7 +33,7 @@ $ChargeCode = $RequestBody.ChargeCode
 $Portfolio = $RequestBody.Portfolio
 $Title = $Name+" ("+$ChargeCode+")"
 #Duplicate check based on charge code
-$SearchResult = Get-PnPListItem -List "Projects" -Query "<View><Query><Where><Eq><FieldRef Name='Charge_x0020_Number'/><Value Type='Text'>$ChargeCode</Value></Eq></Where></Query></View>"
+$SearchResult = Get-PnPListItem -List $ListURL -Query "<View><Query><Where><Eq><FieldRef Name='Charge_x0020_Number'/><Value Type='Text'>$ChargeCode</Value></Eq></Where></Query></View>"
 if ($SearchResult) {
     Write-Verbose -Message "A project with duplicate charge code exists! Please verify that the repository for the project you are trying to create does not already exist. For any questions, please contact the SharePoint site administrator."
     Write-Verbose -Message "Exiting the script." 
@@ -35,8 +45,8 @@ if ($SearchResult) {
 
 
 #Copy the folder structure to the new document library
-$Items = Get-PnPListItem -List "Shared Documents"
-$TargetUrl = "/sites/Michael-Kim-Test-Site/$ChargeCode"
+$Items = Get-PnPListItem -List $TemplateListName
+$TargetUrl = "/sites/$SourceSiteName/$ChargeCode"
 foreach($Item in $Items){
     if (($Item.fieldValues.FileRef -match '/sites/Michael-Kim-Test-Site/Shared Documents/testProject/') -and ($Item.fieldValues.FileRef -notmatch '/sites/Michael-Kim-Test-Site/Shared Documents/testProject/.*/')){
     Write-Verbose -Message "Copying folder: $($Item.FieldValues.FileLeafRef)"
