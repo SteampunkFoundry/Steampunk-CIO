@@ -23,7 +23,6 @@ $TemplateListName = "Template"
 # $ListURL = "Projects"
 # $TemplateListName = "Shared Documents"
 
-
 # Login
 Connect-PnPOnline -ClientId <ClientID> -Url $SourceSiteURL -Tenant "sesolutionsinc.onmicrosoft.com" -Thumbprint <Thumbprint>
 
@@ -47,8 +46,10 @@ if ($SearchResult) {
 #Copy the folder structure to the new document library
 $Items = Get-PnPListItem -List $TemplateListName
 $TargetUrl = "/sites/$SourceSiteName/$ChargeCode"
+$MatchURL = "/sites/$SourceSiteName/$TemplateListName/"
+$NotMatchURL = "/sites/$SourceSiteName/$TemplateListName/.*/"
 foreach($Item in $Items){
-    if (($Item.fieldValues.FileRef -match '/sites/Michael-Kim-Test-Site/Shared Documents/testProject/') -and ($Item.fieldValues.FileRef -notmatch '/sites/Michael-Kim-Test-Site/Shared Documents/testProject/.*/')){
+    if (($Item.fieldValues.FileRef -match $MatchURL) -and ($Item.fieldValues.FileRef -notmatch $NotMatchURL)){
     Write-Verbose -Message "Copying folder: $($Item.FieldValues.FileLeafRef)"
     $CopyTemplate = Copy-PnPFile -SourceUrl "$($Item.FieldValues.FileRef)" -TargetUrl $TargetUrl -Force
     }
@@ -73,8 +74,10 @@ foreach($Owner in $SplitOwners){
 	$AddMember = Add-PnPGroupMember -LoginName $Owner -Group $GroupName
 }
 #Break Permission Inheritance of the List
-$BreakInheritance = Set-PnPList -Identity $Title -BreakRoleInheritance -CopyRoleAssignments
+$BreakInheritance = Set-PnPList -Identity $Title -BreakRoleInheritance
 #Grant permission on list to Group
 $SetPermission = Set-PnPListPermission -Identity $Title -AddRole "Full Control" -Group $GroupName
+$SetPermission = Set-PnPListPermission -Identity $Title -AddRole "Full Control" -Group 'steampunk Projects Owners'
+$SetPermission = Set-PnPListPermission -Identity $Title -AddRole "Edit" -Group 'steampunk Projects Members'
 
 Write-Verbose -Message "Done."
