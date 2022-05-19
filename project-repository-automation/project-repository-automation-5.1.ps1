@@ -16,12 +16,14 @@ $SourceSiteURL = "https://sesolutionsinc.sharepoint.com/sites/Projects"
 $SourceSiteName = "Projects"
 $ListURL = "Lists/Projects"
 $TemplateListName = "Template"
+$MembersGroupDirectoryName = "Customer Deliverables"
 
 # Parameters for targeting the mike-test-site
 # $SourceSiteURL = "https://sesolutionsinc.sharepoint.com/sites/Michael-Kim-Test-Site"
 # $SourceSiteName = "Michael-Kim-Test-Site"
 # $ListURL = "Projects"
 # $TemplateListName = "Shared Documents"
+# $MembersGroupDirectoryName = "testProject2" 
 
 # Login
 Connect-PnPOnline -ClientId <ClientID> -Url $SourceSiteURL -Tenant "sesolutionsinc.onmicrosoft.com" -Thumbprint <Thumbprint>
@@ -65,19 +67,24 @@ $AddProjectList = Add-PnPListItem -List "Projects" -Values @{
 }
 
 # Permission groups
-$GroupName = $Title+' - Owners'
-Write-Verbose -Message "Creating owners group..."
-$CreateGroup = New-PnPGroup -Title $GroupName
-Write-Verbose -Message "Adding owner(s) to the group..."
+$OwnersGroupName = $Title+' - Owners'
+$MembersGroupName = $Title+' - Members'
+Write-Verbose -Message "Creating groups..."
+$CreateOwnersGroup = New-PnPGroup -Title $OwnersGroupName
+$CreateMembersGroup = New-PnPGroup -Title $MembersGroupName
+Write-Verbose -Message "Adding owner(s) to the owners group..."
 $SplitOwners = $RequestBody.Owners.Split(", ")| where {$_}
 foreach($Owner in $SplitOwners){
-	$AddMember = Add-PnPGroupMember -LoginName $Owner -Group $GroupName
+	$AddMember = Add-PnPGroupMember -LoginName $Owner -Group $OwnersGroupName
 }
 #Break Permission Inheritance of the List
 $BreakInheritance = Set-PnPList -Identity $Title -BreakRoleInheritance
 #Grant permission on list to Group
-$SetPermission = Set-PnPListPermission -Identity $Title -AddRole "Full Control" -Group $GroupName
+$SetPermission = Set-PnPListPermission -Identity $Title -AddRole "Full Control" -Group $OwnersGroupName
 $SetPermission = Set-PnPListPermission -Identity $Title -AddRole "Full Control" -Group 'steampunk Projects Owners'
 $SetPermission = Set-PnPListPermission -Identity $Title -AddRole "Edit" -Group 'steampunk Projects Members'
+#Grant permission to Members Group for the appropriate directory 
+$MembersGroupDirectory = Get-PnPListItem -List $Title -Query "<View><Query><Where><Eq><FieldRef Name='FileLeafRef'/><Value Type='File'>$MembersGroupDirectoryName</Value></Eq></Where></Query></View>"
+$SetMembersPermission = Set-PnPListItemPermission -List $Title -Identity $MembersGroupDirectory -AddRole "Edit" -Group $MembersGroupName
 
 Write-Verbose -Message "Done."
